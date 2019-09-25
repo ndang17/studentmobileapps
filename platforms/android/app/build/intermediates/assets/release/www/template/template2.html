@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+    <meta http-equiv="Content-Security-Policy" content="" />
+
+    <title>Student PU</title>
+
+    <link href="../assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="../assets/animate/animate.css" rel="stylesheet">
+
+    <link href="../assets/custom/custom.css" rel="stylesheet">
+
+    <!--<script type="text/javascript" src="cordova.js"></script>-->
+    <script type="text/javascript" charset="utf-8" src="../cordova.js"></script>
+
+    <script src="../assets/custom/jquery-3.3.1.min.js"></script>
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../assets/moment/moment.js"></script>
+
+    <script src="../assets/custom/providers.js"></script>
+
+    <script type="text/javascript" src="http://pcam.podomorouniversity.ac.id/node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
+
+    <!-- JWT Encode -->
+    <script type="text/javascript" src="../assets/custom/jwt/encode/hmac-sha256.js"></script>
+    <script type="text/javascript" src="../assets/custom/jwt/encode/enc-base64-min.js"></script>
+    <script type="text/javascript" src="../assets/custom/jwt/encode/jwt.encode.js"></script>
+
+    <!-- JWT Decode -->
+    <script type="text/javascript" src="../assets/custom/jwt/decode/build/jwt-decode.min.js"></script>
+
+    <!-- Toas tr -->
+    <link href="../assets/toastr/toastr.min.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="../assets/toastr/toastr.min.js"></script>
+
+    <!--Image Fitter-->
+    <script type="text/javascript" src="../assets/img-fitter/jquery.imgFitter.js"></script>
+
+    <!--<script type="text/javascript" src="../sw.js"></script>-->
+
+    <!--<script type="text/javascript" src="../assets/sw/apps.js"></script>-->
+
+    <script>
+
+        $(document).ready(function () {
+
+            var StatusLogin = localStorage.getItem('Login');
+            if(StatusLogin!=1 || StatusLogin!='1'){
+                window.location.replace('login.html');
+            }
+
+
+
+            window.base_url_server = 'http://pcam.podomorouniversity.ac.id/';
+            window.base_url_student = 'http://studentpu.podomorouniversity.ac.id/';
+            // window.base_url_server = 'http://localhost:8080/siak3/';
+            // window.base_url_student = 'http://localhost:8080/students/';
+
+            loadProfile();
+
+            // window.socket = io.connect( 'http://pcam.podomorouniversity.ac.id:3000/' );
+            // //
+            // socket_messages();
+
+
+
+        });
+
+
+
+        function socket_messages(){
+
+            return false;
+
+            socket.on( 'mobile_notif', function( data ) {
+
+                // alert('ok_dari_template');
+                //
+                // console.log(data);
+                //
+                var UserToken = localStorage.getItem('UserToken');
+                var dataUser = jwt_decode(UserToken,'MUAP)(*');
+
+                var sessionNPM = dataUser.NPM;
+
+                var arrUser = data.dataNotification.dataUser;
+
+                // if (data.mobile_notif == 1) {
+                if($.inArray(''+sessionNPM,arrUser)!=-1){
+                    showLocalNotif(data.dataNotification.Title,data.dataNotification.Message);
+                }
+
+            }); // exit socket
+        }
+
+        function showLocalNotif(Title,Message) {
+            try {
+                //  Block of code to try
+                cordova.plugins.notification.local.schedule({
+                    title: Title,
+                    text: Message,
+                    smallIcon: 'res://ic_stat_logo_pu_notif',
+                    icon: 'http://pcam.podomorouniversity.ac.id/images/icon_right.png'
+                },callbacknotif());
+            }
+            catch(e) {
+                //  Block of code to handle errors
+                alert(JSON.stringify(e));
+            }
+
+
+        }
+
+        function callbacknotif() {
+            // window.location.replace('template2.html?page=globalinfo');
+            loadUnreadAnnouncement();
+        }
+
+        $(function(){
+
+            window.getUrlParameter = function getUrlParameter(sParam) {
+                var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+                    sURLVariables = sPageURL.split('&'),
+                    sParameterName,
+                    i;
+
+                for (i = 0; i < sURLVariables.length; i++) {
+                    sParameterName = sURLVariables[i].split('=');
+
+                    if (sParameterName[0] === sParam) {
+                        return sParameterName[1] === undefined ? true : sParameterName[1];
+                    }
+                }
+            };
+
+            loadingPage('#loadPage','#333');
+
+            var b_m = getUrlParameter('b_m');
+            if(typeof b_m !== "undefined" && b_m=='true'){
+                $('#navigationBottom').load('nav_fix_bottom.html');
+            }
+
+            var b_t = getUrlParameter('b_t');
+            if(typeof b_t !== "undefined"){
+                if(b_t=='default'){
+                    $('#navigationTop').load('nav_fix_top/nav_default.html');
+                } else if(b_t=='annc') {
+                    $('#navigationTop').load('nav_fix_top/nav_announcement.html');
+                }
+
+                else if(b_t=='back') {
+                    $('#navigationTop').load('nav_fix_top/nav_fix_top_back.html');
+                } else if(b_t=='notif'){
+                    $('#navigationTop').load('nav_fix_top/nav_fix_top_notif.html');
+                }
+
+            }
+
+            var firstLoad = setInterval(function () {
+
+                var page = getUrlParameter('page');
+                var subpage = getUrlParameter('subpage');
+
+                var file = (subpage!=''
+                    && typeof subpage !== "undefined"
+                    && subpage!=null) ? subpage : page;
+
+                $("#loadPage").load('../pages/'+page+'/'+file+'.html');
+
+                clearInterval(firstLoad);
+
+            },500);
+
+        });
+
+        function animateCSS(element, animationName, callback) {
+            const node = document.querySelector(element)
+            node.classList.add('animated', animationName)
+
+            function handleAnimationEnd() {
+                node.classList.remove('animated', animationName)
+                node.removeEventListener('animationend', handleAnimationEnd)
+
+                if (typeof callback === 'function') callback()
+            }
+
+            node.addEventListener('animationend', handleAnimationEnd)
+        }
+
+        function OrdNumber(Num) {
+            var Ord = 'th';
+            if(Num==1){
+                Ord = 'st';
+            } else if(Num==2){
+                Ord = 'nd';
+            } else if(Num==2){
+                Ord = 'rd';
+            }
+
+            return Ord;
+        }
+
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": false,
+            "progressBar": false,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+
+        function loadProfile() {
+
+
+            var UserToken = localStorage.getItem('UserToken');
+
+            window.dataUser = jwt_decode(UserToken,'MUAP)(*');
+
+            window.sessionNPM = dataUser.NPM;
+            window.sessionName = dataUser.Name;
+
+            window.sessionProdiID = dataUser.ProdiID;
+            window.sessionToken = dataUser.Password;
+
+            window.sessionClassOf = dataUser.Year;
+            window.sessionDB = 'ta_'+dataUser.Year;
+            window.sessionEmailPU = dataUser.EmailPU;
+            window.sessionPhoto = dataUser.Photo;
+
+            window.sessionSemesterID_old = dataUser.SemesterID;
+            // window.sessionSemesterID = dataUser.SemesterID;
+
+            // Get semester Active
+            var data = {
+                NPM : sessionNPM,
+                Token : sessionToken
+            };
+
+            var token = jwt_encode(data,'UAP)(*');
+            var url = base_url_server+'mobile/__getSemesterActive';
+
+
+            $.post(url,{token:token},function (jsonResult) {
+                if(jsonResult.length>0){
+                    window.sessionSemesterID = jsonResult[0].ID;
+                }
+
+            });
+
+            checkEdom(dataUser.Year,sessionNPM);
+
+        };
+
+        function checkEdom(Year,NPM){
+
+            var url = base_url_server+'api2/_checkEdom';
+            var data = {
+                Year : Year,
+                NPM : NPM
+            };
+            var token = jwt_encode(data,'UAP)(*');
+
+            $.post(url,{token:token},function (jsonResult) {
+                if(jsonResult.Edom==1 || jsonResult.Edom=='1'){
+
+                    $('#modalBottom .modal-header').html('<h4 class="modal-title" id="myModalLabel">EDOM</h4>');
+
+                    $('#modalBottom .modal-body').html('<div style="text-align: center;"><h5>Make sure you have filled out the edom</h5></div>');
+
+                    $('#modalBottom .modal-footer').html('<button class="btn btn-primary btn-sm" id="btnLoginPortalWeb">Login Portal <i>Web Version</i></button>' +
+                        ' <button class="btn btn-success btn-sm" id="btnFilledEdom">I have filled</button>');
+
+                    $('#modalBottom').modal({
+                        show : true,
+                        backdrop : 'static'
+                    });
+
+                    $('#btnLoginPortalWeb').click(function () {
+                        var token = jwt_encode({NPM:NPM},'s3Cr3T-G4N');
+                        var url = base_url_student+'auth/loginFromAkademik?token='+token;
+
+                        var ref = cordova.InAppBrowser.open(url, '_blank', 'location=yes');
+                    });
+
+                    $('#btnFilledEdom').click(function () {
+                        window.location.href = '';
+                    });
+                }
+            });
+
+        }
+
+        function formatRupiah(bilangan) {
+            var	number_string = bilangan.toString(),
+                sisa 	= number_string.length % 3,
+                rupiah 	= number_string.substr(0, sisa),
+                ribuan 	= number_string.substr(sisa).match(/\d{3}/g);
+
+            if (ribuan) {
+                separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            return 'Rp. '+rupiah+',-';
+        }
+
+        function ucWord(str) {
+            str = str.toLowerCase().replace(/\b[a-z]/g, function(letter) {
+                return letter.toUpperCase();
+            });
+        }
+
+        function dateNow() {
+            return moment().format('YYYY-MM-DD');
+        }
+
+        function loadModalLoading() {
+            $('#modalLoading').modal({
+                'show' : true,
+                'backdrop' : 'static'
+            });
+        };
+
+        function selectOptionSemester(element) {
+            var url = base_url_server+'api2/__getSemesterOptionStudent/'+sessionClassOf;
+            $.getJSON(url,function (jsonResult) {
+                if(jsonResult.length>0){
+
+                    for(var i=0;i<jsonResult.length;i++){
+                        var d = jsonResult[i];
+                        var sc = (d.Status=='1') ? 'selected' : '';
+                        $(element).prepend('<option value="'+d.ID+'.'+d.Year+'" '+sc+'>'+d.Name+'</option>');
+
+                        if(d.Status=='1'){
+                            break;
+                        }
+
+                    }
+                }
+            });
+
+        }
+
+    </script>
+
+
+</head>
+<body style="background-color: #f5f5f5;">
+
+
+
+<div id="navigationTop"></div>
+
+
+<div id="loadPage"></div>
+
+<div id="navigationBottom"></div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalLoading" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body" style="background: #333;color: #fff;text-align: center;border: none;">
+                <h3 style="margin-top: 5px;"><i class="fa fa-refresh fa-spin fa-fw" style="margin-right: 5px;"></i> Loading...</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Bottom-->
+<div class="modal fade" id="modalBottom" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog animated fadeInUpBig" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+</body>
+</html>

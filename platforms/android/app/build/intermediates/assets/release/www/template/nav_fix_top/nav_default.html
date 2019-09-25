@@ -1,0 +1,58 @@
+
+<style>
+
+    #btnURLBack{
+        font-size: 23px;
+        padding-bottom: 0px;
+        padding-top: 0px;
+        border: none;
+    }
+</style>
+
+<nav id="nav_default" class="navbar navbar-default navbar-fixed-top animated slideInDown">
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-xs-2">
+                <button id="btnURLBack" type="button" class="btn btn-default-inline navbar-btn"><i class="fa fa-long-arrow-left"></i></button>
+            </div>
+            <div class="col-xs-8 title-nav">
+                <span id="viewMenu">-</span>
+            </div>
+            <div class="col-xs-2">
+                <img src="../assets/image/icon/ic_stat_logo_pu_notif.png" style="width: 30px;float: right;padding-top: 10px;">
+            </div>
+        </div>
+
+        <!--<button id="btnURLBack" type="button" class="btn btn-default-inline navbar-btn"><i class="fa fa-long-arrow-left"></i></button>-->
+
+        <!--<img src="../assets/image/icon/ic_stat_logo_pu_notif.png" style="width: 30px;float: right;padding-top: 10px;">-->
+
+    </div>
+</nav>
+
+<script>
+
+    $(document).ready(function () {
+        var dataTopMenu = JSON.parse(localStorage.getItem('dataTopMenu'));
+        $('#viewMenu').html(dataTopMenu.Title);
+    });
+
+    document.addEventListener("backbutton", onBackKeyDown, false);
+    function onBackKeyDown(e) {
+        e.preventDefault();
+        loadPageBack();
+    }
+
+    $('#btnURLBack').click(function () {
+        loadPageBack();
+    });
+    
+    function loadPageBack() {
+
+        window.location.replace('../template/template2.html?page=globalinfo');
+
+
+
+    }
+</script>

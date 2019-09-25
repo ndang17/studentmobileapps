@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+
+    <title>Hello World</title>
+
+    <link href="../assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+
+    <!--<script type="text/javascript" src="cordova.js"></script>-->
+    <script type="text/javascript" charset="utf-8" src="../cordova.js"></script>
+
+    <script src="../assets/custom/jquery-3.3.1.min.js"></script>
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../assets/moment/moment.js"></script>
+
+    <script src="../assets/custom/providers.js"></script>
+
+    <script type="text/javascript" src="http://pcam.podomorouniversity.ac.id/node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
+
+    <!-- JWT Encode -->
+    <script type="text/javascript" src="../assets/custom/jwt/encode/hmac-sha256.js"></script>
+    <script type="text/javascript" src="../assets/custom/jwt/encode/enc-base64-min.js"></script>
+    <script type="text/javascript" src="../assets/custom/jwt/encode/jwt.encode.js"></script>
+
+    <!-- JWT Decode -->
+    <script type="text/javascript" src="../assets/custom/jwt/decode/build/jwt-decode.min.js"></script>
+
+    <!-- Toas tr -->
+    <link href="../assets/toastr/toastr.min.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="../assets/toastr/toastr.min.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            loadProfile();
+
+            window.base_url_server = 'http://pcam.podomorouniversity.ac.id/';
+            window.socket = io.connect( 'http://pcam.podomorouniversity.ac.id:3000/' );
+
+            socket_messages();
+
+
+
+        });
+
+        $(function(){
+
+            window.getUrlParameter = function getUrlParameter(sParam) {
+                var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+                    sURLVariables = sPageURL.split('&'),
+                    sParameterName,
+                    i;
+
+                for (i = 0; i < sURLVariables.length; i++) {
+                    sParameterName = sURLVariables[i].split('=');
+
+                    if (sParameterName[0] === sParam) {
+                        return sParameterName[1] === undefined ? true : sParameterName[1];
+                    }
+                }
+            };
+
+            loadingPage('#loadPage','#333');
+
+            var b_m = getUrlParameter('b_m');
+            if(typeof b_m !== "undefined" && b_m=='true'){
+                $('#navigationBottom').load('nav_fix_bottom.html');
+            }
+
+            var b_t = getUrlParameter('b_t');
+            if(typeof b_t !== "undefined"){
+                if(b_t=='default'){
+                    $('#navigationTop').load('nav_fix_top/nav_fix_top.html');
+                } else if(b_t=='back') {
+                    $('#navigationTop').load('nav_fix_top/nav_fix_top_back.html');
+                } else if(b_t=='notif'){
+                    $('#navigationTop').load('nav_fix_top/nav_fix_top_notif.html');
+                }
+
+            }
+
+            var firstLoad = setInterval(function () {
+
+                var page = getUrlParameter('page');
+                var subpage = getUrlParameter('subpage');
+
+                var file = (subpage!=''
+                    && typeof subpage !== "undefined"
+                    && subpage!=null) ? subpage : page;
+
+                $("#loadPage").load('../pages/'+page+'/'+file+'.html');
+
+                clearInterval(firstLoad);
+
+            },500);
+
+        });
+
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": false,
+            "progressBar": false,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+
+        function loadProfile() {
+            var UserToken = localStorage.getItem('UserToken');
+            var dataUser = jwt_decode(UserToken,'MUAP)(*');
+
+            window.sessionNPM = dataUser.NPM
+
+        }
+
+        function socket_messages(){
+
+            socket.on( 'mobile_notif', function( data ) {
+
+                var UserToken = localStorage.getItem('UserToken');
+                var dataUser = jwt_decode(UserToken,'MUAP)(*');
+
+                var sessionNPM = dataUser.NPM;
+
+                var arrUser = data.dataNotification.dataUser;
+
+                // if (data.mobile_notif == 1) {
+                if($.inArray(''+sessionNPM,arrUser)!=-1){
+                    showLocalNotif(data.dataNotification.Title,data.dataNotification.Message);
+                }
+
+            }); // exit socket
+        }
+
+        function loadModalLoading() {
+            $('#modalLoading').modal({
+                'show' : true,
+                'backdrop' : 'static'
+            });
+        }
+
+        function showLocalNotif(Title,Message) {
+            cordova.plugins.notification.local.schedule({
+                title: Title,
+                text: Message,
+                smallIcon: 'res://ic_stat_logo_pu_notif',
+                icon: 'http://pcam.podomorouniversity.ac.id/images/icon_right.png'
+            },callbacknotif());
+
+        }
+
+        function callbacknotif() {
+            // Cek apakah sedang di page
+            var page = getUrlParameter('page');
+            if(page=='notifications'){
+                window.location.href = '../template/template.html?page=notifications&b_m=true&b_t=default';
+            }
+
+        }
+
+
+
+    </script>
+
+    <style>
+        .modal {
+            text-align: center;
+            padding: 0!important;
+        }
+        .modal-content {
+            background-color: #333333 !important;
+        }
+        .modal:before {
+            content: '';
+            display: inline-block;
+            height: 100%;
+            vertical-align: middle;
+            margin-right: -4px;
+        }
+
+        .modal-dialog {
+            display: inline-block;
+            text-align: left;
+            vertical-align: middle;
+            width: 90%;
+        }
+    </style>
+
+</head>
+<body>
+
+<div id="include2"></div>
+
+<div id="navigationTop"></div>
+
+
+<div id="loadPage"></div>
+
+<div id="navigationBottom"></div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalLoading" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body" style="background: #333;color: #fff;text-align: center;border: none;">
+                <h3 style="margin-top: 5px;"><i class="fa fa-refresh fa-spin fa-fw" style="margin-right: 5px;"></i> Loading...</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+</body>
+</html>

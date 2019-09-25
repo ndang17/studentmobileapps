@@ -1,0 +1,130 @@
+
+<style>
+    #navbarButtom {
+        background-color: #ffffff;
+        border-color: #CCCCCC;
+    }
+
+    .navbar-fixed-bottom a {
+        color: #9e9e9e;
+        text-decoration: none;
+        text-align: center;
+        /*border-left: 1px solid #fff;*/
+        padding-top: 7px;
+    }
+
+    .navbar-fixed-bottom a:hover{
+        color: #14388e;
+    }
+
+    .navbar-fixed-bottom a.navbar-active{
+        color: #14388e;
+    }
+
+
+    @media screen and (max-height: 450px) {
+        .sidenav {padding-top: 15px;}
+        .sidenav a {font-size: 18px;}
+    }
+
+
+    .div-notif {
+        position: absolute;
+        height: 22px;
+        width: 22px;
+        background: #ff1100;
+        color: #ffffff;
+        top: -10px;
+        right: -10px;
+        text-align: center;
+        font-size: 13px !important;
+        padding-top: 5px;
+        border-radius: 13px;
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+        border: 1px solid #ffffff;
+    }
+</style>
+
+<div id="navbarButtom" class="navbar navbar-default navbar-fixed-bottom">
+    <div class="container-fluid">
+        <div class="row">
+            <a class="col-xs-4 menu-act-navigation" href="javascript:void(0);" data-page="notifications">
+                <div><i class="fa fa-bell fa-2x" style="position: relative;"><div id="viewUnread"></div></i></div>
+                Announcements
+            </a>
+            <a class="col-xs-4 menu-act-navigation" href="javascript:void(0);" data-page="academic">
+                <div><i class="fa fa-calendar fa-2x"></i></div>
+                Timetables
+            </a>
+            <a class="col-xs-4 menu-act-navigation" href="javascript:void(0);" data-page="account">
+                <div><i class="fa fa-user fa-2x"></i></div>
+                Account
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<!-- Form Hide Announcement -->
+<textarea id="ArrIDUnread" class="hide"></textarea>
+<input class="hide" id="loadFirst" value="0">
+
+
+<script>
+
+    $(document).ready(function () {
+        $('.menu-act-navigation').removeClass('navbar-active');
+        var page = getUrlParameter('page');
+        $('a[data-page='+page+']').addClass('navbar-active');
+        loadUnreadAnnouncement();
+    });
+
+    $('.menu-act-navigation').click(function () {
+        var page = $(this).attr('data-page');
+
+        var bt = 'default';
+
+        if(page=='notifications'){
+            bt = 'notif';
+        }
+        window.location.href = '../template/template.html?page='+page+'&b_m=true&b_t='+bt;
+    });
+
+    $(document).ready(function () {
+
+    });
+
+    function loadUnreadAnnouncement () {
+
+        var UserToken = localStorage.getItem('UserToken');
+        var dataUser = jwt_decode(UserToken,'MUAP)(*');
+
+        var url = base_url_server+'api2/__crudAnnouncement';
+
+        var data = {
+            action : 'showAnnc_UnreadOnly',
+            User : 'Std',
+            UserID : dataUser.NPM
+        };
+
+        var token = jwt_encode(data,'UAP)(*');
+        $.post(url,{token:token},function (jsonResult) {
+
+            var IDUnread = [];
+            if(jsonResult.length>0){
+                $('#viewUnread').html('<div class="div-notif">'+jsonResult.length+'</div>');
+
+                $.each(jsonResult,function (i, v) {
+                    IDUnread.push(v.IDAnnc);
+                });
+            }
+
+            $('#ArrIDUnread').val(JSON.stringify(IDUnread));
+
+            $('#loadFirst').val(1);
+
+
+        });
+    }
+
+</script>

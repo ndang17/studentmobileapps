@@ -1,0 +1,239 @@
+
+<style>
+    .pnl-head-semester {
+        padding: 15px;
+        padding-top: 0px;
+    }
+
+    .pnl-head-semester h3 {
+        font-weight: bold;
+        color: #607D8B;
+        border-left: 9px solid orange;
+        padding-left: 7px;
+    }
+
+    .pnl-timetables .thumbnail {
+        padding: 0px;
+    }
+
+    .pnl-timetables .thumbnail .list-group {
+        margin-bottom: 0px;
+    }
+
+    .pnl-title {
+        font-size: 17px;
+    }
+
+    .pnl-details {
+        margin-top: 10px;
+    }
+
+    .pnl-details .item-1 {
+        font-size: 12px;
+    }
+
+
+    .tableScore {
+        margin-bottom: 0px;
+    }
+
+    .tableScore td {
+        border-top: none !important;
+    }
+    .tableScore td:last-child {
+        width: 55px;
+    }
+
+    .nilai {
+        text-align: center;
+        font-size: 21px;
+        font-weight: bold;
+        color: #ffffff;
+    }
+    .nilai-success {
+        background: #4caf50;
+    }
+    .nilai-info {
+        background: #2196f3;
+    }
+    .nilai-warning {
+        background: #ff9800;
+    }
+    .nilai-danger {
+        background: #f44336;
+    }
+    .pnl-ips {
+        text-align: center;
+        font-size: 21px;
+        background-color: lightyellow;
+        padding: 10px;
+        color: #607d8b;
+        border: 1px dashed #607d8b;
+        font-weight: bold;
+    }
+</style>
+
+<div class="" style="margin-top: 70px;">
+
+    <div id="divScore"></div>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+        loadDataKHS();
+    });
+
+    function loadDataKHS() {
+
+        var url = base_url_server+'rest/__getStudyResult';
+        var data = {
+            auth : {
+                user : 'students',
+                token :  sessionToken
+            },
+            NPM : sessionNPM,
+            ClassOf : sessionClassOf,
+            date : moment().format('YYYY-MM-DD')
+        };
+        var token = jwt_encode(data,'s3Cr3T-G4N');
+
+        $.post(url,{token:token},function (dataResult) {
+
+            var dv2 = $('#divScore');
+            var valIPS = [0];
+
+            var smt=0;
+
+            for(var i=0;i<dataResult.length;i++){
+                smt = smt +1;
+
+                var dataKHS = dataResult[i];
+
+                if(dataKHS.semesterDetail.length>0){
+
+                    dv2.prepend('<div class="pnl-timetables">' +
+                        '        <div class="pnl-head-semester">' +
+                        '            <h3>Semester '+dataKHS.semester+'</h3>' +
+                        '        </div>' +
+                        '        <div class="thumbnail">' +
+                        '            <ul class="list-group" id="ul_'+i+'"></ul>' +
+                        '        </div>' +
+                        '    </div>');
+
+
+                    // valIPS.push(0);
+                    var totalCredit = 0;
+                    var totalGrade = 0;
+                    var IPS = 0;
+
+
+                    var SemesterActive = (sessionSemesterID == dataKHS.SemesterID) ? 1 : 0;
+                    var Check_H = (new Date(dateNow()) <= new Date(dataKHS.Show_H)) ? 1 : 0;
+                    var Check_T = (new Date(dateNow()) <= new Date(dataKHS.Show_T)) ? 1 : 0;
+
+                    for(var d=0;d<dataKHS.semesterDetail.length;d++){
+                        var detailKHS = dataKHS.semesterDetail[d];
+
+
+                        var tr2 = $('#ul_'+i);
+
+                        var ev1 = detailKHS.Evaluasi1;
+                        var ev2 = detailKHS.Evaluasi2;
+                        var ev3 = detailKHS.Evaluasi3;
+                        var ev4 = detailKHS.Evaluasi4;
+                        var ev5 = detailKHS.Evaluasi5;
+
+                        var UAS = detailKHS.UAS;
+                        var ScoreFinal = detailKHS.Score;
+                        var ScoreGrade = detailKHS.Grade;
+                        var ScoreGradeValue = detailKHS.GradeValue;
+
+                        if(SemesterActive==1 && Check_H==1){
+                            ev1 = (detailKHS.Evaluasi1==0 || detailKHS.Evaluasi1=='0' ||
+                                detailKHS.Evaluasi1=='' || detailKHS.Evaluasi1==null) ? 'H' : detailKHS.Evaluasi1;
+                            ev2 = (detailKHS.Evaluasi2==0 || detailKHS.Evaluasi2=='0' ||
+                                detailKHS.Evaluasi2=='' || detailKHS.Evaluasi2==null) ? 'H' : detailKHS.Evaluasi2;
+                            ev3 = (detailKHS.Evaluasi3==0 || detailKHS.Evaluasi3=='0' ||
+                                detailKHS.Evaluasi3=='' || detailKHS.Evaluasi3==null) ? 'H' : detailKHS.Evaluasi3;
+                            ev4 = (detailKHS.Evaluasi4==0 || detailKHS.Evaluasi4=='0' ||
+                                detailKHS.Evaluasi4=='' || detailKHS.Evaluasi4==null) ? 'H' : detailKHS.Evaluasi4;
+                            ev5 = (detailKHS.Evaluasi5==0 || detailKHS.Evaluasi5=='0' ||
+                                detailKHS.Evaluasi5=='' || detailKHS.Evaluasi5==null) ? 'H' : detailKHS.Evaluasi5;
+                        }
+
+                        if(SemesterActive==1 && Check_T==1){
+                            UAS = (detailKHS.UAS==0 || detailKHS.UAS=='0'
+                                || detailKHS.UAS=='' || detailKHS.UAS==null) ? 'T' : detailKHS.UAS;
+                            ScoreFinal = (detailKHS.UAS==0 || detailKHS.UAS=='0'
+                                || detailKHS.UAS=='' || detailKHS.UAS==null) ? '-' : detailKHS.Score;
+                            ScoreGrade = (detailKHS.UAS==0 || detailKHS.UAS=='0'
+                                || detailKHS.UAS=='' || detailKHS.UAS==null) ? '-' : detailKHS.Grade;
+                            ScoreGradeValue = (detailKHS.UAS==0 || detailKHS.UAS=='0'
+                                || detailKHS.UAS=='' || detailKHS.UAS==null) ? '-' : detailKHS.GradeValue;
+                        }
+
+
+
+
+                        var clGrade = 'nilai-danger';
+                        if(ScoreGrade=='A' || ScoreGrade=='A-'){
+                            clGrade = 'nilai-success';
+                        } else if(ScoreGrade=='B+' || ScoreGrade=='B' || ScoreGrade=='B-'){
+                            clGrade = 'nilai-info';
+                        } else if(ScoreGrade=='C+' || ScoreGrade=='C' || ScoreGrade=='C-'){
+                            clGrade = 'nilai-warning';
+                        }
+                        tr2.append('<li class="list-group-item">' +
+                            '                    <div class="pnl-title">'+detailKHS.NameEng+'</div>' +
+                            '                    <span class="label label-default">Credit : '+detailKHS.Credit+'</span>' +
+                            '                    <div class="pnl-details">' +
+                            '                        <table class="table tableScore">' +
+                            '                            <tr>' +
+                            '                                <td>' +
+                            '                                    <div class="item-1">UTS : '+detailKHS.UTS+'</div>' +
+                            '                                    <div class="item-1">UAS : '+UAS+'</div>' +
+                            '                                </td>' +
+                            '                                <td>' +
+                            '                                    <div class="nilai '+clGrade+'">'+ScoreGrade+'</div>' +
+                            '                                </td>' +
+                            '                            </tr>' +
+                            '                        </table>' +
+                            '                    </div>' +
+                            '                </li>');
+
+                        var valueGrade = parseInt(detailKHS.Credit) * parseFloat(detailKHS.GradeValue);
+                        totalGrade = parseFloat(totalGrade) + parseFloat(valueGrade);
+                        totalCredit = parseInt(totalCredit) + parseInt(detailKHS.Credit);
+
+
+                        if(d==(dataKHS.semesterDetail.length-1)){
+                            var calculateIPS = parseFloat(totalGrade) / parseInt(totalCredit);
+                            IPS = parseFloat(calculateIPS).toFixed(2);
+                            $('#viewIPS'+i).html(IPS);
+                            valIPS.push(IPS);
+
+                            tr2.append('<li class="list-group-item">' +
+                                '                    <div class="pnl-ips">' +
+                                '                        IPS : '+IPS+' ' +
+                                '                    </div>' +
+                                '                </li>');
+
+
+                        }
+
+                    }
+
+
+                }
+                else {
+                    valIPS.push(0);
+                }
+
+            }
+
+
+        });
+    }
+
+</script>

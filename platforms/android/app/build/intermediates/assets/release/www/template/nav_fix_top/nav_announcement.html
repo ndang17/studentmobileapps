@@ -1,0 +1,74 @@
+
+<nav id="nav_default" class="navbar navbar-default navbar-fixed-top animated slideInDown">
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-xs-2">
+                <button id="btnURLBack" type="button" class="btn btn-default-inline navbar-btn"><i class="fa fa-long-arrow-left"></i></button>
+            </div>
+            <div class="col-xs-8 title-nav">
+                <span id="viewMenu"></span>Announcement
+            </div>
+            <div class="col-xs-2">
+                <button type="button" id="otherPage" class="btn btn-sm btn-default-inline navbar-btn" style="float: right;"><i class="fa fa-bookmark-o"></i></button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+
+    $(document).ready(function () {
+        loadMenuTop();
+    });
+
+    function loadMenuTop() {
+
+        var dataAnnc = JSON.parse(localStorage.getItem('announcement'));
+        $('#otherPage').html(dataAnnc.Icon);
+        $('#otherPage').attr('data-url',dataAnnc.URL);
+
+        var menu = (dataAnnc.Menu=='Saved') ? 'List ' : 'Saved ';
+
+        $('#viewMenu').html(menu);
+
+    }
+
+    document.addEventListener("backbutton", onBackKeyDown, false);
+    function onBackKeyDown(e) {
+        e.preventDefault();
+        loadPageBack();
+    }
+
+    $('#btnURLBack').click(function () {
+        loadPageBack();
+    });
+
+    function loadPageBack() {
+        window.location.replace('../template/template2.html?page=globalinfo');
+    }
+
+    $('#otherPage').click(function () {
+        var dataAnnc = JSON.parse(localStorage.getItem('announcement'));
+        var page = 'announcement';
+        var bt = 'annc';
+        var data = {
+            Icon : '<i class="fa fa-bookmark-o"></i>',
+            URL : '../template/template2.html?page='+page+'&subpage=announcement_saved&b_t='+bt,
+            Menu : 'Saved'
+        };
+        if(dataAnnc.Menu=='Saved'){
+            data = {
+                Icon : '<i class="fa fa-bullhorn"></i>',
+                URL : '../template/template2.html?page='+page+'&b_t='+bt,
+                Menu : 'List'
+            };
+        }
+
+        localStorage.setItem('announcement',JSON.stringify(data));
+
+        var url = $(this).attr('data-url');
+        window.location.replace(url);
+
+    });
+</script>

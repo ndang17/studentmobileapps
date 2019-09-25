@@ -1,0 +1,257 @@
+
+<style>
+    .tableScore {
+        margin-bottom: 0px;
+    }
+
+    .pn-c {
+        background-color: #f5f5f5;
+        color: #607d8b;
+        font-size: 11px;
+        padding: 3px 5px 3px 5px;
+        margin-top: 10px;
+    }
+
+</style>
+
+<div class="container" style="margin-top: 70px;">
+
+    <div class="row" style="margin-bottom: 20px;">
+        <div class="col-xs-7">
+            <select class="form-control" id="filterSemester"></select>
+        </div>
+        <div class="col-xs-5">
+            <select class="form-control" id="filterExamType">
+                <option value="uts">Mid Exam</option>
+                <option value="uas">Final Exam</option>
+                <option disabled>*** Make-up ***</option>
+                <option value="re_uts" style="color: orangered;">Mid Exam (Make-up)</option>
+                <option value="re_uas" style="color: orangered;">Final Exam (Make-up)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-xs-12">
+
+            <div id="showExam"></div>
+
+            <!--<div class="thumbnail" style="border-top: none;padding: 0px;border-radius: 0px;margin-top: 15px;">-->
+                <!--<table class="table tableScore">-->
+                    <!--<tbody id="listScEx"></tbody>-->
+                    <!--<tr>-->
+                        <!--<td>-->
+                            <!--<div style="font-size: 12px;">Architecture Design Studio 7</div>-->
+                            <!--<span class="pn-c">Wednesday, 17 Oct 2018 08:00 - 17:00 | <i class="fa fa-map-marker"></i> 507</span>-->
+                        <!--</td>-->
+                    <!--</tr>-->
+                <!--</table>-->
+            <!--</div>-->
+
+
+        </div>
+
+    </div>
+
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        selectOptionSemester('#filterSemester');
+
+        var loadPageFirst = setInterval(function () {
+
+            var filterSemester = $('#filterSemester').val();
+            var filterExamType = $('#filterExamType').val();
+            if(filterSemester!='' && filterSemester!=null && filterExamType!='' && filterExamType!=null){
+                loadExamSchedule();
+                clearInterval(loadPageFirst);
+            }
+        },1000);
+
+    });
+
+    $('#filterSemester,#filterExamType').change(function () {
+        var filterSemester = $('#filterSemester').val();
+        var filterExamType = $('#filterExamType').val();
+        if(filterSemester!='' && filterSemester!=null && filterExamType!='' && filterExamType!=null){
+            loadExamSchedule();
+        }
+    });
+
+    function loadExamSchedule() {
+        var filterSemester = $('#filterSemester').val();
+        var filterExamType = $('#filterExamType').val();
+        if(filterSemester!='' && filterSemester!=null && filterExamType!='' && filterExamType!=null){
+
+            var SemesterID = filterSemester.split('.')[0];
+            var SemeaterYear = filterSemester.split('.')[1];
+
+
+            var url = base_url_server+'rest/__getExamScheduleForStudent';
+            var data = {
+                auth : {
+                    user : 'students',
+                    token :  sessionToken
+                },
+                DB_ : sessionDB,
+                NPM : sessionNPM,
+                SemesterID : SemesterID,
+                ClassOf : sessionClassOf,
+                ExamType : filterExamType
+            };
+            var token = jwt_encode(data,'s3Cr3T-G4N');
+
+            $.post(url,{token:token},function (jsonResult) {
+
+
+                console.log(jsonResult);
+
+
+                loadingPage('#showExam');
+
+                setTimeout(function () {
+                    if(jsonResult.Status==1){
+
+
+                        if(jsonResult.ExamSchedule.length){
+
+                            var dataTableSc = '<div class="table-responsive" style="padding: 10px;">' +
+                                '                <table class="table table-bordered tableExam">' +
+                                '                    <thead>' +
+                                '                    <tr>' +
+                                '                        <th style="width: 1%">No</th>' +
+                                '                        <th style="width: 7%">Code</th>' +
+                                '                        <th>Course</th>' +
+                                '                        <th style="width: 7%">Group</th>' +
+                                '                        <th style="width: 7%">Attendance</th>' +
+                                '                        <th style="width: 15%">Day, Date</th>' +
+                                '                        <th style="width: 10%">Time</th>' +
+                                '                        <th style="width: 10%">Room</th>' +
+                                '                    </tr>' +
+                                '                    </thead>' +
+                                '                   <tbody id="detailEXS"></tbody>' +
+                                '                </table>' +
+                                '            </div>' +
+                                '            <div style="text-align: right;padding: 15px;">' +
+                                '               <button class="btn btn-sm btn-default btn-default-primary" disabled id="btnDownloadExamCard"><i class="fa fa-download fa-margin-right" aria-hidden="true"></i> Download Exam Card</button></div>' +
+                                '';
+
+                            var dataTableSc2 = '<div class="thumbnail" style="border-top: none;padding: 0px;border-radius: 0px;margin-top: 15px;">' +
+                                '                <table class="table tableScore">' +
+                                '                    <tbody id="listScEx"></tbody>' +
+                                '                </table>' +
+                                '            </div>';
+
+                            $('#showExam').html(dataTableSc2);
+
+                            var no = 1;
+                            var toPDFExamCard = [];
+                            for(var s=0;s<jsonResult.ExamSchedule.length;s++){
+                                var d_c = jsonResult.ExamSchedule[s];
+
+
+                                var dataDate = (d_c.ExamDate!='' && d_c.ExamDate!=null) ? moment(d_c.ExamDate).format('dddd, DD MMM YYYY') : '-';
+                                var dataTime = (d_c.ExamStart!='' && d_c.ExamStart!=null
+                                    && d_c.ExamEnd!='' && d_c.ExamEnd!=null) ? d_c.ExamStart.substr(0,5)+' - '+d_c.ExamEnd.substr(0,5)  : '-';
+                                var dataRoom = (d_c.Room!='' && d_c.Room!=null) ? d_c.Room : '-';
+
+                                var stb = (d_c.StatusExam==-1) ? 'background:#ffe7e7;' : '';
+
+                                var showAttds = d_c.AttendancePercentage.toFixed()+' %';
+
+                                if(d_c.StatusExam==-1){
+
+                                    $('#listScEx').append('<tr>' +
+                                        '                        <td>' +
+                                        '                            <div style="font-size: 12px;margin-bottom: 5px;">'+d_c.CourseEng+'<br/>'+
+                                        '                               <span class="label label-default">Attendance : '+showAttds+'</span></div>' +
+                                        '                            <span class="pn-c" style="color: red;">Attendance not enough</span>' +
+                                        '                        </td>' +
+                                        '                    </tr>');
+
+
+                                } else {
+
+                                    $('#listScEx').append('<tr>' +
+                                        '                        <td>' +
+                                        '                            <div style="font-size: 12px;margin-bottom: 5px;">'+d_c.CourseEng+'<br/>'+
+                                        '                               <span class="label label-default">Attendance : '+showAttds+'</span></div>' +
+                                        '                            <span class="pn-c">'+dataDate+' '+dataTime+' | <i class="fa fa-map-marker"></i> '+dataRoom+'</span>' +
+                                        '                        </td>' +
+                                        '                    </tr>');
+
+
+                                }
+
+
+
+                                var arr_ = {
+                                    Code : d_c.MKCode,
+                                    CourseEng : d_c.CourseEng,
+                                    Course : d_c.Course,
+                                    Group : d_c.ClassGroup,
+                                    Date : dataDate,
+                                    Time : dataTime,
+                                    Room : dataRoom,
+                                    // adiing by adhi 2018-12-04, Req Mbak Novi dan Email Pak Eris Academic
+                                    filterExamType : filterExamType
+                                };
+                                toPDFExamCard.push(arr_);
+                            };
+
+                            var token = jwt_encode(toPDFExamCard,'UAP)(*');
+                            $('#btnDownloadExamCard').prop('disabled',false).attr('data-token',token);
+                        }
+                        else {
+                            var imgIcon = base_url_student+'images/icon/folder.png';
+                            $('#showExam').html('<div class="col-md-6 col-md-offset-3" style="text-align: center;">'+
+                                '        <div class="alert alert-info" role="alert">The Exam Schedule Not Yet Set</div>'+
+                                '        <div class="thumbnail" style="padding: 15px;">'+
+                                '            <img src="'+imgIcon+'" style="max-width: 130px;">'+
+                                '            <h3 style="font-weight: bold;color: #575f64;">The Exam Schedule Not Yet Set</h3>'+
+                                '        </div>'+
+                                '    </div>');
+                        }
+                    }
+                    else if(jsonResult.Status==-1 || jsonResult.Status==-2){
+                        var pt = (jsonResult.Status==-1) ? 'BPP' : 'Credit';
+                        var imgIcon = (jsonResult.Status==-1) ? base_url_student+'images/icon/pay.png' : base_url_student+'images/icon/wallet.png';
+                        $('#showExam').html('<div class="col-md-6 col-md-offset-3" style="text-align: center;">'+
+                            '        <div class="alert alert-warning" role="alert">Please, check your payment</div>'+
+                            '        <div class="thumbnail" style="padding: 15px;">'+
+                            '            <img src="'+imgIcon+'" style="max-width: 130px;">'+
+                            '            <h3 style="font-weight: bold;color: #0f9390;">'+pt+' Payment unpaid</h3>'+
+                            '        </div>'+
+                            '    </div>');
+                    }
+                    else if (jsonResult.Status==-3) {
+                        var AvailableDate = jsonResult.AvailableDate;
+                        $('#showExam').html('<div class="col-md-6 col-md-offset-3" style="text-align: center;">' +
+                            '        <div class="alert alert-success" role="alert">The exam schedule will be shown on <b>'+moment(AvailableDate).format('dddd, DD MMM YYYY')+'</b></div>' +
+                            '    </div>');
+                    }
+                    else {
+                        var imgIcon = base_url_student+'images/icon/not-available.png';
+                        $('#showExam').html('<div class="col-md-6 col-md-offset-3" style="text-align: center;">'+
+                            '        <div class="alert alert-danger" role="alert">The Exam Schedule Not Available</div>'+
+                            '        <div class="thumbnail" style="padding: 15px;">'+
+                            '            <img src="'+imgIcon+'" style="max-width: 130px;">'+
+                            '            <h3 style="font-weight: bold;color: #575f64;">The Exam Schedule Not Available</h3>'+
+                            '        </div>'+
+                            '    </div>');
+                    }
+                },500);
+
+
+            });
+
+        }
+
+    }
+
+
+
+</script>

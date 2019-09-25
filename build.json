@@ -1,0 +1,11 @@
+{
+  "android" : {
+    "release" : {
+      "keystore" : "app-key.keystore",
+      "storePassword" : "Podomoro123",
+      "alias" : "app-key",
+      "password" : "Podomoro123",
+      "keystoreType" : ""
+    }
+  }
+}

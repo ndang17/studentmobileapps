@@ -1,0 +1,335 @@
+
+<style>
+    .pnl-head-semester {
+        padding: 15px;
+        padding-top: 0px;
+    }
+
+    .pnl-head-semester h3 {
+        font-weight: bold;
+        color: #607D8B;
+        border-left: 9px solid orange;
+        padding-left: 7px;
+    }
+
+    .pnl-timetables .thumbnail {
+        padding: 0px;
+    }
+
+    .pnl-timetables .thumbnail .list-group {
+        margin-bottom: 0px;
+    }
+
+    .pnl-title {
+        font-size: 17px;
+    }
+
+    .pnl-details {
+        margin-top: 10px;
+    }
+
+    .pnl-details .item-1 {
+        font-size: 12px;
+    }
+
+    .pnl-details .item-2 {
+        font-size: 12px;
+
+        padding: 7px;
+        margin-top: 10px;
+        font-weight: bolder;
+    }
+</style>
+
+<div style="margin-top: 80px;">
+
+    <div id="showTimeTable"></div>
+
+</div>
+
+
+<script>
+
+    $(document).ready(function () {
+        getKSM();
+    });
+
+    function getKSM() {
+
+
+        var url = base_url_server+'rest/__getKSM';
+        var data = {
+            auth: {
+                user: "students",
+                token: dataUser.Password
+            },
+            DB_: "ta_"+dataUser.Year,
+            NPM: dataUser.NPM,
+            ProdiID: dataUser.ProdiID,
+            ClassOf: dataUser.Year,
+            date: moment().format('YYYY-MM-DD')
+        };
+        var token = jwt_encode(data,'s3Cr3T-G4N');
+        $.post(url,{token:token},function (resultJson) {
+
+            console.log(resultJson);
+
+
+            $('#divKSM').html('');
+
+            if(resultJson.length>0){
+                for(var i=0;i<resultJson.length;i++){
+                    var dataRest = resultJson[i];
+
+                    var note_krs = (dataRest.Semester==1 || dataRest.Semester==2) ? '<div style="padding-left: 10px;color: blue;"> *) Only for first and second semester, study plan has been configured by based on Study Programme. (Student Book - N. Beban Studi)</div>' : '';
+
+
+                    if (dataRest.StatusSystem == '0') {
+                        if(dataRest.Schedule.length>0) {
+
+
+
+                            $('#showTimeTable').prepend('<div class="pnl-timetables">' +
+                                '        <div class="pnl-head-semester">' +
+                                '            <h3>Semester '+dataRest.Semester+'<br/><small>'+dataRest.SemesterName+'</small></h3>' +
+                                '        </div>' +
+                                '        <div class="thumbnail">' +
+                                '            <div class="list-group" id="listSemester_'+dataRest.SemesterID+'"></div>' +
+                                '        </div>' +
+                                '    </div>');
+
+
+                            var totalCredit = 0;
+                            var tr2 = $('#listSemester_' + dataRest.SemesterID);
+                            var tr = $('#listSemestw' + dataRest.SemesterID);
+                            var no =1;
+                            for (var s = 0; s < dataRest.Schedule.length; s++) {
+                                var sc = dataRest.Schedule[s];
+
+                                totalCredit = totalCredit + parseInt(sc.Credit);
+                                var sc_detail = [];
+                                // Cek apakah mata kuliah ini adalah pindahan
+                                if(sc.TransferCourse==1 || sc.TransferCourse=='1'){
+
+                                    tr2.append('<li class="list-group-item">' +
+                                        '                    <div class="pnl-title">'+sc.MKNameEng+'</div>' +
+                                        '                    <span class="label label-success">Group : -</span>' +
+                                        '                    <span class="label label-default">Credit : '+sc.Credit+'</span>' +
+                                        '                    <div class="pnl-details">Course conversion</div>' +
+                                        '                </li>');
+
+
+                                }
+                                else {
+
+
+                                    if (sc.DetailDateSchedule.length > 1) {
+
+
+                                        tr2.append('<li class="list-group-item">' +
+                                            '                    <div class="pnl-title">'+sc.MKNameEng+'</div>' +
+                                            '                    <span class="label label-success">Group : -</span>' +
+                                            '                    <span class="label label-default">Credit : '+sc.Credit+'</span>' +
+                                            '' +
+                                            '                    <div class="pnl-details">' +
+                                            '                        <div class="item-1"><i class="fa fa-user-o"></i> - <button class="btn btn-sm btn-default btnDetailTm" style="float: right;">Detail</button></div>' +
+                                            '                        <div class="item-1" id="detailsc_'+dataRest.SemesterID+'_'+no+'"></div>' +
+                                            '                        <div class="item-2">Attendance : -</div>' +
+                                            '                    </div>' +
+                                            '                </li>');
+
+                                        for (var ds = 0; ds < sc.DetailDateSchedule.length; ds++) {
+                                            var dts = sc.DetailDateSchedule[ds];
+
+                                            var schedule_time = dts.Day + ', ' + dts.Start.substr(0, 5) + ' - ' + dts.End.substr(0, 5);
+                                            $('#detailsc_'+dataRest.SemesterID+'_'+no).append('<div><i class="fa fa-calendar-minus-o"></i> '+schedule_time+' | '+dts.Classroom+'</div>');
+
+                                            break;
+
+                                        }
+
+                                    }
+                                    else {
+
+                                        var schedule_time = (sc.Start!=null && sc.Start!='' && sc.Start!='00:00:00')
+                                            ? sc.Day + ', ' + sc.Start.substr(0, 5) + ' - ' + sc.End.substr(0, 5)
+                                            : '-' ;
+
+                                        tr2.append('<li class="list-group-item">' +
+                                            '                    <div class="pnl-title">'+sc.MKNameEng+'</div>' +
+                                            '                    <span class="label label-success">Group : -</span>' +
+                                            '                    <span class="label label-default">Credit : '+sc.Credit+'</span>' +
+                                            '' +
+                                            '                    <div class="pnl-details">' +
+                                            '                        <div class="item-1"><i class="fa fa-user-o"></i> - <button class="btn btn-sm btn-default btnDetailTm" style="float: right;">Detail</button></div>' +
+                                            '                        <div class="item-1"><i class="fa fa-calendar-minus-o"></i> '+schedule_time+' | '+sc.Classroom+'</div>' +
+                                            '                        <div class="item-2">Attendance : -</div>' +
+                                            '                    </div>' +
+                                            '                </li>');
+
+
+                                    }
+                                }
+
+
+                                if (s == (dataRest.Schedule.length - 1)) {
+                                    tr.append('<tr style="background: #9e9e9e26;font-weight: bold;">' +
+                                        '<td colspan="5">Total Credit</td>' +
+                                        '<td>' + totalCredit + '</td>' +
+                                        '</tr>');
+                                }
+
+                                no++;
+                            }
+
+                        }
+
+                    }
+                    else {
+                        if(dataRest.Schedule.length>0) {
+
+
+                            $('#showTimeTable').prepend('<div class="pnl-timetables">' +
+                                '        <div class="pnl-head-semester">' +
+                                '            <h3>Semester '+dataRest.Semester+'<br/><small>'+dataRest.SemesterName+'</small></h3>' +
+                                '        </div>' +
+                                '        <div class="thumbnail">' +
+                                '            <div class="list-group" id="listSemester_'+dataRest.SemesterID+'"></div>' +
+                                '        </div>' +
+                                '    </div>');
+
+                            var tr2 = $('#listSemester_' + dataRest.SemesterID);
+                            var tr = $('#datarw' + dataRest.SemesterID);
+                            var totalCredit = 0;
+                            var no = 1;
+                            for (var s = 0; s < dataRest.Schedule.length; s++) {
+
+                                var sc = dataRest.Schedule[s];
+                                var sc_detail = [];
+
+                                var SemesterID = dataRest.SemesterID;
+                                var ScheduleID = sc.ScheduleID;
+
+                                totalCredit = totalCredit + parseInt(sc.Credit);
+                                var ttc = '';
+                                if (sc.TeamTeaching == '1') {
+                                    for (var t = 0; t < sc.TeamTeachingDetails.length; t++) {
+                                        if (t == 0) {
+                                            ttc = '<br/>' + sc.TeamTeachingDetails[t].Lecturer;
+                                        } else {
+                                            ttc = ttc + '<br/>' + sc.TeamTeachingDetails[t].Lecturer;
+                                        }
+                                    }
+                                }
+
+                                var lc = (sc.NIP != '' && sc.NIP != null) ? sc.Lecturer : '-';
+
+                                // var lcSplit = lc.split(' ');
+                                // var lcPDFlc = (lcSplit.length>2) ? lcSplit[0]+' '+lcSplit[1] : lcPDFlc;
+                                var lcPDF = (ttc!='' && ttc!=null) ? lc+' & Teams' : lc;
+
+                                if (sc.Schedule.length > 1) {
+                                    var rwspan = parseInt(sc.Schedule.length) + 1;
+
+                                    if(sc.TransferCourse=='1' || sc.TransferCourse==1){
+
+                                        tr2.append('<li class="list-group-item">' +
+                                            '                    <div class="pnl-title">'+sc.MKNameEng+'</div>' +
+                                            '                    <span class="label label-success">Group : -</span>' +
+                                            '                    <span class="label label-default">Credit : '+sc.Credit+'</span>' +
+                                            '                    <div class="pnl-details">Course conversion</div>' +
+                                            '                </li>');
+
+
+                                    } else {
+
+
+                                        tr2.append('<li class="list-group-item">' +
+                                            '                    <div class="pnl-title">'+sc.MKNameEng+'</div>' +
+                                            '                    <span class="label label-success">Group : '+sc.ClassGroup+'</span>' +
+                                            '                    <span class="label label-default">Credit : '+sc.Credit+'</span>' +
+                                            '                    <div class="pnl-details">' +
+                                            '                        <div class="item-1"><i class="fa fa-user-o"></i> '+lc+' <button class="btn btn-sm btn-default btnDetailTm" style="float: right;">Detail</button></div>' +
+                                            '                        <div class="item-1" id="detailsc_'+dataRest.SemesterID+'_'+no+'"></div>' +
+                                            '                        <div class="item-2">Attendance : '+sc.AttendanceStudent.toFixed()+'%</div>' +
+                                            '                    </div>' +
+                                            '                </li>');
+
+
+                                        for (var ds = 0; ds < sc.Schedule.length; ds++) {
+                                            var dts = sc.Schedule[ds];
+
+                                            var schedule_time = dts.DayEng + ', ' + dts.StartSessions.substr(0, 5) + ' - ' + dts.EndSessions.substr(0, 5)+' | '+dts.Room;
+                                            $('#detailsc_'+dataRest.SemesterID+'_'+no).append('<div><i class="fa fa-calendar-minus-o"></i> '+schedule_time+'</div>');
+
+                                        }
+                                    }
+
+
+
+
+                                }
+                                else {
+                                    var dts = sc.Schedule[0];
+
+                                    // Cek apakah mata kuliah transfer atau bukan
+                                    if(sc.TransferCourse=='1' || sc.TransferCourse==1){
+
+                                        tr2.append('<li class="list-group-item">' +
+                                            '                    <div class="pnl-title">'+sc.MKNameEng+'</div>' +
+                                            '                    <span class="label label-success">Group : -</span>' +
+                                            '                    <span class="label label-default">Credit : '+sc.Credit+'</span>' +
+                                            '                    <div class="pnl-details">Course conversion</div>' +
+                                            '                </li>');
+
+
+                                    }
+                                    else {
+                                        // Parsing Presensi
+
+                                        var dataDate = dts.DayEng + ', ' + dts.StartSessions.substr(0, 5) + ' - ' + dts.EndSessions.substr(0, 5)+' | '+dts.Room;
+
+                                        tr2.append('<li class="list-group-item">' +
+                                            '                    <div class="pnl-title">'+sc.MKNameEng+'</div>' +
+                                            '                    <span class="label label-success">Group : '+sc.ClassGroup+'</span>' +
+                                            '                    <span class="label label-default">Credit : '+sc.Credit+'</span>' +
+                                            '                    <div class="pnl-details">' +
+                                            '                        <div class="item-1"><i class="fa fa-user-o"></i> '+lc+' <button class="btn btn-sm btn-default btnDetailTm" style="float: right;">Detail</button></div>' +
+                                            '                        <div class="item-1"><i class="fa fa-calendar-minus-o"></i> '+dataDate+'</div>' +
+                                            '                        <div class="item-2">Attendance : '+sc.AttendanceStudent.toFixed()+'%</div>' +
+                                            '                    </div>' +
+                                            '                </li>');
+
+
+                                    }
+
+
+                                }
+
+
+
+                                if (s == (dataRest.Schedule.length - 1)) {
+                                    tr.append('<tr style="background: #9e9e9e26;font-weight: bold;">' +
+                                        '<td colspan="5">Total Credit</td>' +
+                                        '<td>' + totalCredit + '</td>' +
+                                        '</tr>');
+                                }
+
+                                no++;
+                            }
+                        }
+                    }
+
+                }
+                $('.btnDetailTm').remove();
+
+            } else {
+                $('#divKSM').html('<h4 style="color: #CCCCCC;">--- Timetables Not Yet ---</h4>');
+
+            }
+
+
+
+        });
+    }
+</script>

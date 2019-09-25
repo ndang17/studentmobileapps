@@ -1,0 +1,149 @@
+
+
+<div class="container" style="margin-top: 80px;">
+    <div id="viewGI_Announcement"></div>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+        loadAnnouncement();
+    });
+
+    function loadAnnouncement() {
+        var url = base_url_server+'api2/__crudAnnouncement';
+
+        var data = {
+            action : 'showAnnouncementSaved',
+            User : 'Std',
+            UserID : sessionNPM
+        };
+
+        var token = jwt_encode(data,'UAP)(*');
+
+        var ArrIDUnread = $('#ArrIDUnread').val();
+        var dataIDUnread = (ArrIDUnread!='' && ArrIDUnread!=null) ? JSON.parse(ArrIDUnread) : [];
+
+        $.post(url,{token:token},function (jsonResult) {
+
+            var Announcement = jsonResult;
+            $('#viewGI_Announcement').html('');
+            if(Announcement.length>0){
+
+                $('#viewGI_Announcement').html('<div class="row">' +
+                    '        <div class="col-xs-12">' +
+                    '            <div class="thumbnail panel-announcement" style="padding: 0px;">' +
+                    '                <div class="list-group" id="showAnnc" style="margin-bottom: 0px;"></div>' +
+                    '            </div>' +
+                    '        </div>' +
+                    '    </div>');
+
+
+                $('.saved-annc-badge').html(jsonResult.Saved);
+
+                var no = 1;
+                $.each(Announcement,function (i,v) {
+
+                    var title = (parseInt((v.Title.length)) > 30) ? v.Title.substr(0,30)+'..' : v.Title;
+
+                    var clUnread = ($.inArray(v.ID,dataIDUnread)!=-1) ? 'style="background: lightyellow;"' : '';
+
+                    $('#showAnnc').append('<a href="javascript:void(0);" '+clUnread+' class="list-group-item showAnnouncement" data-id="'+v.ID+'">' +
+                        '                        <span class="numbering-annc">'+no+'</span>' +
+                        '                        <span class="details-annc">'+title+'</span>' +
+                        '                    </a>');
+                    no++;
+                });
+
+            }
+            else {
+                $('#viewGI_Announcement').html('<div class="row">' +
+                    '        <div class="col-xs-12">' +
+                    '            <div class="thumbnail panel-announcement" style="padding: 5px;text-align: center;"><h4 style="color: #CCCCCC;">-- Saved Announcement Not Yet --</h4></div>' +
+                    '        </div>' +
+                    '    </div>');
+            }
+
+
+        });
+
+    }
+
+    // Show Announcement
+    $(document).on('click','.showAnnouncement',function () {
+        var IDAnnc = $(this).attr('data-id');
+
+        var data = {
+            action : 'readDetailAnnc',
+            IDAnnc : IDAnnc,
+            User : 'Std',
+            UserID : sessionNPM
+        };
+
+        var token = jwt_encode(data,'UAP)(*');
+        var url = base_url_server+'api2/__crudAnnouncement';
+
+        $.post(url,{token:token},function (jsonResult) {
+
+            var Ann = jsonResult.Annc[0];
+            var Status = jsonResult.Status[0];
+
+            var time = moment(Ann.Start).format('DD MMM YYYY')+' - '+moment(Ann.End).format('DD MMM YYYY');
+            $('#modalBottom .modal-title').html(Ann.Title+'<br/><small style="background: #f1f1f1;padding: 7px;font-size: 10px;">'+time+'</small>');
+
+            var file = (Ann.File!=null && Ann.File!='') ? '<a target="_blank" href="'+Ann.FileURL+'" class="btn btn-sm btn-default">Download File</a>' : '';
+            $('#modalBottom .modal-body').html(Ann.Message+'<div>'+file+'</div>');
+
+
+            var btnAct = (Status.Read==2 || Status.Read=='2')
+                ? '<button class="btn btn-danger btn-actdetails" data-satus="1" data-id="'+Ann.ID+'">Remove From Saved List</button>'
+                : '<button class="btn btn-success btn-actdetails" data-satus="2" data-id="'+Ann.ID+'">Save</button>';
+
+            $('#modalBottom .modal-footer').html(btnAct+' <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
+
+            $('#modalBottom').modal({
+                show : true,
+                backdrop : 'static'
+            });
+
+        });
+
+
+    });
+
+    $(document).on('click','.btn-actdetails',function () {
+        var IDAnnc = $(this).attr('data-id');
+        var Status = $(this).attr('data-satus');
+
+        loading_button('.btn-actdetails');
+
+        var data = {
+            action : 'saveDetailAnnc',
+            IDAnnc : IDAnnc,
+            User : 'Std',
+            UserID : sessionNPM,
+            Status : Status
+        };
+        var token = jwt_encode(data,'UAP)(*');
+        var url = base_url_server+'api2/__crudAnnouncement';
+
+        $.post(url,{token:token},function () {
+
+            loadAnnouncement();
+
+            toastr.success('Saved','Success');
+            setTimeout(function () {
+
+                $('#modalBottom').modal('hide');
+
+                var btnAct = (Status==2 || Status=='2')
+                    ? '<button class="btn btn-danger btn-actdetails" data-satus="1" data-id="'+IDAnnc+'">Remove From Saved List</button>'
+                    : '<button class="btn btn-success btn-actdetails" data-satus="2" data-id="'+IDAnnc+'">Save</button>';
+
+                $('#modalBottom .modal-footer').html(btnAct+' <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
+            },500);
+        });
+
+    });
+
+</script>

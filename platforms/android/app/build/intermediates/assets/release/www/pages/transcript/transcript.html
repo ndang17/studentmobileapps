@@ -1,0 +1,192 @@
+
+<style>
+
+    .tableScore {
+        margin-bottom: 0px;
+    }
+
+    .tableScore td:last-child {
+        width: 20px;
+    }
+
+    .nilai {
+        text-align: center;
+        font-size: 14px;
+    }
+    .nilai-success {
+        color: #4caf50;
+    }
+    .nilai-info {
+        color: #2196f3;
+    }
+    .nilai-warning {
+        color: #ff9800;
+    }
+    .nilai-danger {
+        color: #f44336;
+    }
+
+    .pn-c {
+        background-color: #f5f5f5;
+        color: #607d8b;
+        font-size: 10px;
+        padding: 3px 5px 3px 5px;
+        margin-top: 10px;
+    }
+</style>
+
+<div class="container" style="margin-top: 70px;">
+
+    <div class="row">
+
+        <div class="col-xs-12">
+
+
+
+            <div class="thumbnail" style="border-top: none;padding: 0px;border-radius: 0px;">
+
+                <table class="table tableScore">
+
+                    <tbody id="showDetailCourse"></tbody>
+
+
+                </table>
+
+
+
+            </div>
+
+            <div class="thumbnail" style="padding: 0px;border-radius: 0px;">
+                <table class="table" style="margin-bottom: 0px;">
+                    <tr>
+                        <td style="width: 50%;text-align: center;border: none; border-right: 1px solid #CCCCCC;">
+                            <div>Total Credit</div>
+                            <b id="viewTotalCredit">0</b>
+                        </td>
+                        <td style="width: 50%;text-align: center;border: none; ">
+                            <div>IPK</div>
+                            <b id="viewIPK">0.00</b>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+    $(document).ready(function () {
+        loadDataTranscript();
+    });
+
+    function loadDataTranscript() {
+
+        var url = base_url_server+'rest/__getTranscript';
+        var data = {
+            auth : {
+                user : 'students',
+                token :  sessionToken
+            },
+            NPM : sessionNPM,
+            ClassOf : sessionClassOf,
+            date : moment().format('YYYY-MM-DD')
+        };
+        var token = jwt_encode(data,'s3Cr3T-G4N');
+
+        $.post(url,{token:token},function (data_json) {
+
+            if(data_json.length>0){
+                var tb2 = $('#showDetailCourse');
+
+                var totalCredit = 0;
+                var totalGradeValue = 0;
+
+                var a=0,a1=0,b2=0,b=0,b1=0,c2=0,c=0,d=0,e=0;
+
+
+                var smt = data_json;
+
+                for(var s=0;s<smt.length;s++){
+
+                    switch (smt[s].Grade) {
+                        case 'A':
+                            a = a +1;
+                            break;
+                        case 'A-':
+                            a1 = a1 +1;
+                            break;
+                        case 'B+':
+                            b2 = b2 +1;
+                            break;
+                        case 'B':
+                            b = b +1;
+                            break;
+                        case 'B-':
+                            b1 = b1 +1;
+                            break;
+                        case 'C+':
+                            c2 = c2 +1;
+                            break;
+                        case 'C':
+                            c = c +1;
+                            break;
+                        case 'D':
+                            d = d +1;
+                            break;
+                        default:
+                            e = e+1;
+                    }
+
+
+                    var clGrade = 'nilai-danger';
+                    if(smt[s].Grade=='A' || smt[s].Grade=='A-'){
+                        clGrade = 'nilai-success';
+                    } else if(smt[s].Grade=='B+' || smt[s].Grade=='B' || smt[s].Grade=='B-'){
+                        clGrade = 'nilai-info';
+                    } else if(smt[s].Grade=='C+' || smt[s].Grade=='C' || smt[s].Grade=='C-') {
+                        clGrade = 'nilai-warning';
+                    }
+
+                    tb2.append('<tr>' +
+                        '                        <td>' +
+                        '                            <div style="font-size: 12px;">'+smt[s].CourseEng+'</div>' +
+                        '                            <span class="pn-c">Credit : '+smt[s].Credit+'</span>' +
+                        '                        </td>' +
+                        '                        <td>' +
+                        '                            <div class="nilai '+clGrade+'">'+smt[s].Grade+'</div>' +
+                        '                        </td>' +
+                        '                    </tr>');
+
+
+                    totalCredit = parseInt(totalCredit) + parseInt(smt[s].Credit);
+
+                    var g = parseInt(smt[s].Credit) * parseFloat(smt[s].GradeValue);
+                    totalGradeValue = parseFloat(totalGradeValue) + parseFloat(g);
+
+                    if(s==(smt.length-1)){
+                        var calculateIPK = totalGradeValue / totalCredit;
+
+                        // var ipk = parseFloat(calculateIPK).toFixed(2);
+                        var ipk = parseFloat(calculateIPK).toFixed(2);
+                        // var ipk = Number(Math.ceil(parseFloat(calculateIPK))).toFixed(2);
+
+                        $('#sumGrade').html('Grade : A = '+a+' | A- = '+a1+' | B+ = '+b2+' | B = '+b+' | B- = '+b1+' | C+ = '+c2+' | C = '+c+' | D = '+d+' | E = '+e);
+                        $('#viewTotalCredit').html(totalCredit);
+                        $('#totalPoint').html(totalGradeValue.toFixed(2));
+                        $('#viewIPK').html(ipk);
+                    }
+
+                }
+            }
+
+
+
+        })
+    }
+</script>

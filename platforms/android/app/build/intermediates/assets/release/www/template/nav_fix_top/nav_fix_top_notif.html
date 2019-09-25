@@ -1,0 +1,70 @@
+<style>
+    .div-badge-saved {
+        position: absolute;
+        background: #FF5722;
+        color: #ffffff;
+        width: 19px;
+        height: 19px;
+        top: 2px;
+        right: 6px;
+        border-radius: 15px;
+        font-size: 10px;
+        text-align: center;
+        padding-top: 4px;
+        border: 1px solid #fff;
+    }
+</style>
+
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-8">
+                <img src="../assets/image/icon/LogoPU-min.png" style="max-width: 130px;margin-top: 3px;">
+            </div>
+            <div class="col-xs-4" style="text-align: right;float: right;padding-right: 25px;">
+                <ul class="nav navbar-nav navbar-right" style="margin: 0.5px -15px;">
+                    <li><a href="javascript:void(0);" id="showBtnSaved"><i class="fa fa-bookmark fa-2x">
+                        <div class="div-badge-saved" id="viewTotalSaved">0</div>
+                    </i></a></li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+        loadTotalSaved();
+    });
+
+    function loadTotalSaved() {
+        var url = base_url_server+'api2/__crudAnnouncement';
+
+        var data = {
+            action : 'showCountAnnouncementSaved',
+            User : 'Std',
+            UserID : sessionNPM
+        };
+
+        var token = jwt_encode(data,'UAP)(*');
+
+        $.post(url,{token:token},function (jsonResult) {
+
+            $('#viewTotalSaved').html(jsonResult[0].Total);
+
+        });
+    }
+
+    $('#showBtnSaved').click(function () {
+        var dataBack = {
+            Title : 'Saved Announcements',
+            UrlBack : '../template/template.html?page=notifications&b_m=true&b_t=notif'
+        };
+        localStorage.setItem('dataBack', JSON.stringify(dataBack));
+
+        window.location.href = '../template/template.html?page=notifications&subpage=saved_notifications&b_t=back';
+
+    });
+</script>
