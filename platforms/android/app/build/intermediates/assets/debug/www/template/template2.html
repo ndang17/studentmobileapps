@@ -16,16 +16,18 @@
 
     <link href="../assets/custom/custom.css" rel="stylesheet">
 
+    <link href="../assets/font/custom-font.css" rel="stylesheet">
+
     <!--<script type="text/javascript" src="cordova.js"></script>-->
     <script type="text/javascript" charset="utf-8" src="../cordova.js"></script>
 
-    <script src="../assets/custom/jquery-3.3.1.min.js"></script>
+<!--    <script src="../assets/custom/jquery-3.3.1.min.js"></script>-->
+    <script src="../assets/lib/jquery.min.js"></script>
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
     <script src="../assets/moment/moment.js"></script>
 
     <script src="../assets/custom/providers.js"></script>
 
-    <script type="text/javascript" src="http://pcam.podomorouniversity.ac.id/node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
 
     <!-- JWT Encode -->
     <script type="text/javascript" src="../assets/custom/jwt/encode/hmac-sha256.js"></script>
@@ -42,10 +44,6 @@
     <!--Image Fitter-->
     <script type="text/javascript" src="../assets/img-fitter/jquery.imgFitter.js"></script>
 
-    <!--<script type="text/javascript" src="../sw.js"></script>-->
-
-    <!--<script type="text/javascript" src="../assets/sw/apps.js"></script>-->
-
     <script>
 
         $(document).ready(function () {
@@ -57,16 +55,13 @@
 
 
 
-            window.base_url_server = 'http://pcam.podomorouniversity.ac.id/';
-            window.base_url_student = 'http://studentpu.podomorouniversity.ac.id/';
+            window.base_url_server = 'https://pcam.podomorouniversity.ac.id/';
+            window.base_url_student = 'https://studentpu.podomorouniversity.ac.id/';
             // window.base_url_server = 'http://localhost:8080/siak3/';
             // window.base_url_student = 'http://localhost:8080/students/';
 
             loadProfile();
 
-            // window.socket = io.connect( 'http://pcam.podomorouniversity.ac.id:3000/' );
-            // //
-            // socket_messages();
 
 
 
@@ -74,109 +69,6 @@
 
 
 
-        function socket_messages(){
-
-            return false;
-
-            socket.on( 'mobile_notif', function( data ) {
-
-                // alert('ok_dari_template');
-                //
-                // console.log(data);
-                //
-                var UserToken = localStorage.getItem('UserToken');
-                var dataUser = jwt_decode(UserToken,'MUAP)(*');
-
-                var sessionNPM = dataUser.NPM;
-
-                var arrUser = data.dataNotification.dataUser;
-
-                // if (data.mobile_notif == 1) {
-                if($.inArray(''+sessionNPM,arrUser)!=-1){
-                    showLocalNotif(data.dataNotification.Title,data.dataNotification.Message);
-                }
-
-            }); // exit socket
-        }
-
-        function showLocalNotif(Title,Message) {
-            try {
-                //  Block of code to try
-                cordova.plugins.notification.local.schedule({
-                    title: Title,
-                    text: Message,
-                    smallIcon: 'res://ic_stat_logo_pu_notif',
-                    icon: 'http://pcam.podomorouniversity.ac.id/images/icon_right.png'
-                },callbacknotif());
-            }
-            catch(e) {
-                //  Block of code to handle errors
-                alert(JSON.stringify(e));
-            }
-
-
-        }
-
-        var testNotifications = function () {
-
-            document.addEventListener("deviceready", function () {
-
-                console.warn("testNotifications Started");
-
-                // Checks for permission
-                cordova.plugin.notification.local.hasPermission(function (granted) {
-
-                    console.warn("Testing permission");
-
-                    if( granted == false ) {
-
-                        console.warn("No permission");
-                        // If app doesnt have permission request it
-                        cordova.plugin.notification.local.registerPermission(function (granted) {
-
-                            console.warn("Ask for permission");
-                            if( granted == true ) {
-
-                                console.warn("Permission accepted");
-                                // If app is given permission try again
-                                testNotifications();
-
-                            } else {
-                                alert("We need permission to show you notifications");
-                            }
-
-                        });
-                    } else {
-
-                        var pathArray = window.location.pathname.split( "/www/" ),
-                            secondLevelLocation = window.location.protocol +"//"+ pathArray[0],
-                            now = new Date();
-
-
-                        console.warn("sending notification");
-
-                        var isAndroid = false;
-
-                        if ( device.platform === "Android" ) {
-                            isAndroid = true;
-                        }
-
-                        cordova.plugin.notification.local.schedule({
-                            id: 9,
-                            title: "Test notification 9",
-                            text: "This is a test notification",
-                            sound: isAndroid ? "file://sounds/notification.mp3" : "file://sounds/notification.caf",
-                            at: new Date( new Date().getTime() + 10 )
-                            // data: { secret:key }
-                        });
-
-                    }
-
-                });
-
-            }, false);
-
-        };
 
         function callbacknotif() {
             // window.location.replace('template2.html?page=globalinfo');
@@ -421,6 +313,13 @@
 
 
 </head>
+
+<style>
+    body {
+        font-family: "MavenPro";
+    }
+</style>
+
 <body style="background-color: #f5f5f5;">
 
 

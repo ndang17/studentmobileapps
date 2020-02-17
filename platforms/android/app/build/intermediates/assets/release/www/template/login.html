@@ -12,10 +12,12 @@
     <link href="../assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/font-awesome/css/font-awesome.min.css" rel="stylesheet">
 
+    <link href="../assets/font/custom-font.css" rel="stylesheet">
+
     <!--<script type="text/javascript" src="cordova.js"></script>-->
     <script type="text/javascript" charset="utf-8" src="../../cordova.js"></script>
 
-    <script src="../assets/custom/jquery-3.4.1.min.js"></script>
+    <script src="../assets/lib/jquery.min.js"></script>
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
 
 
@@ -29,14 +31,13 @@
     <!-- JWT Decode -->
     <script type="text/javascript" src="../assets/custom/jwt/decode/build/jwt-decode.min.js"></script>
 
-    <script type="text/javascript" src="http://pcam.podomorouniversity.ac.id/node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
-
 </head>
 
 <style>
 
     html, body {
         height:100%;
+        font-family: "MavenPro" !important;
     }
 
     body {
@@ -158,7 +159,7 @@
 
     });
 
-    window.base_url_server = 'http://pcam.podomorouniversity.ac.id/';
+    window.base_url_server = 'https://pcam.podomorouniversity.ac.id/';
 
     $('#btnLogin').click(function () {
 

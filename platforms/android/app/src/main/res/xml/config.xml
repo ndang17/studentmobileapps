@@ -1,24 +1,15 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.ypap.StudentPU" version="1.0.8" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <feature name="Whitelist">
-        <param name="android-package" value="org.apache.cordova.whitelist.WhitelistPlugin" />
-        <param name="onload" value="true" />
+<widget id="com.ypap.StudentPU_alternatife" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <feature name="InAppBrowser">
+        <param name="android-package" value="org.apache.cordova.inappbrowser.InAppBrowser" />
     </feature>
     <feature name="StatusBar">
         <param name="android-package" value="org.apache.cordova.statusbar.StatusBar" />
         <param name="onload" value="true" />
     </feature>
-    <feature name="InAppBrowser">
-        <param name="android-package" value="org.apache.cordova.inappbrowser.InAppBrowser" />
-    </feature>
-    <feature name="Device">
-        <param name="android-package" value="org.apache.cordova.device.Device" />
-    </feature>
-    <feature name="LocalNotification">
-        <param name="android-package" value="de.appplant.cordova.plugin.localnotification.LocalNotification" />
-    </feature>
-    <feature name="Badge">
-        <param name="android-package" value="de.appplant.cordova.plugin.badge.Badge" />
+    <feature name="Whitelist">
+        <param name="android-package" value="org.apache.cordova.whitelist.WhitelistPlugin" />
+        <param name="onload" value="true" />
     </feature>
     <name>Student PU</name>
     <description>
@@ -47,4 +38,5 @@
     <resource-file src="res/my_notification_icon/android/drawable-xxxhdpi/ic_stat_logo_pu_notif.png" target="app/src/main/res/drawable-xxxhdpi/ic_stat_logo_pu_notif.png" />
     <preference name="loglevel" value="DEBUG" />
     <preference name="StatusBarBackgroundColor" value="#004977" />
+    <preference name="android-targetSdkVersion" value="28" />
 </widget>

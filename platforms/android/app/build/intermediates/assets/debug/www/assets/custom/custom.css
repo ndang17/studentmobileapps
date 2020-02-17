@@ -110,6 +110,7 @@
     text-align: center;
     margin-top: 10px;
     font-size: 12px;
+    color: #909090;
 }
 
 .list-group-item {
@@ -291,4 +292,8 @@
     padding-top: 11px;
     display: inline-block;
     text-align: center;
+}
+
+#viewName, .title-panel, .tracking-content, .panel-menu-title, .modal-title, .panel-title {
+    font-family: "MavenPro-SemiBold";
 }

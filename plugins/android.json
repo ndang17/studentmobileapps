@@ -7,25 +7,18 @@
     "files": {}
   },
   "installed_plugins": {
-    "cordova-plugin-whitelist": {
+    "cordova-plugin-inappbrowser": {
       "PACKAGE_NAME": "com.ypap.StudentPU"
     },
     "cordova-plugin-statusbar": {
       "PACKAGE_NAME": "com.ypap.StudentPU"
     },
-    "cordova-plugin-inappbrowser": {
-      "PACKAGE_NAME": "com.ypap.StudentPU"
-    },
-    "cordova-plugin-local-notification": {
-      "ANDROID_SUPPORT_V4_VERSION": "26.+",
+    "cordova-plugin-whitelist": {
       "PACKAGE_NAME": "com.ypap.StudentPU"
     }
   },
   "dependent_plugins": {
-    "cordova-plugin-device": {
-      "PACKAGE_NAME": "com.ypap.StudentPU"
-    },
-    "cordova-plugin-badge": {
+    "es6-promise-plugin": {
       "PACKAGE_NAME": "com.ypap.StudentPU"
     }
   }

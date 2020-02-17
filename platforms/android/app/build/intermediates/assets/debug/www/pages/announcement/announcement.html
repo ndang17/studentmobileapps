@@ -116,7 +116,9 @@
             var time = moment(Ann.Start).format('DD MMM YYYY')+' - '+moment(Ann.End).format('DD MMM YYYY');
             $('#modalBottom .modal-title').html(Ann.Title+'<br/><small style="background: #f1f1f1;padding: 7px;font-size: 10px;">'+time+'</small>');
 
-            var file = (Ann.File!=null && Ann.File!='') ? '<a target="_blank" href="'+Ann.FileURL+'" class="btn btn-sm btn-default">Download File</a>' : '';
+            var file = (Ann.File!=null && Ann.File!='')
+                ? '<a target="_blank" href="'+Ann.FileURL+'" class="btn btn-sm btn-default">Download File</a>'
+                : '';
             $('#modalBottom .modal-body').html(Ann.Message+'<div>'+file+'</div>');
 
 

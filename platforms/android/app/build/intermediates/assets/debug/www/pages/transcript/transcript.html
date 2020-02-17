@@ -99,8 +99,9 @@
         };
         var token = jwt_encode(data,'s3Cr3T-G4N');
 
-        $.post(url,{token:token},function (data_json) {
+        $.post(url,{token:token},function (jsonResult) {
 
+            var data_json = jsonResult.dataCourse;
             if(data_json.length>0){
                 var tb2 = $('#showDetailCourse');
 

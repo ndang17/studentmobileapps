@@ -12,6 +12,8 @@
     <link href="../assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/font-awesome/css/font-awesome.min.css" rel="stylesheet">
 
+    <link href="https://portal.podomorouniversity.ac.id/assets/css/custom-font.css" rel="stylesheet">
+
     <!--<script type="text/javascript" src="cordova.js"></script>-->
     <script type="text/javascript" charset="utf-8" src="../cordova.js"></script>
 
@@ -21,7 +23,7 @@
 
     <script src="../assets/custom/providers.js"></script>
 
-    <script type="text/javascript" src="http://pcam.podomorouniversity.ac.id/node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
+<!--    <script type="text/javascript" src="http://pcam.podomorouniversity.ac.id/node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>-->
 
     <!-- JWT Encode -->
     <script type="text/javascript" src="../assets/custom/jwt/encode/hmac-sha256.js"></script>
@@ -42,9 +44,9 @@
             loadProfile();
 
             window.base_url_server = 'http://pcam.podomorouniversity.ac.id/';
-            window.socket = io.connect( 'http://pcam.podomorouniversity.ac.id:3000/' );
-
-            socket_messages();
+            // window.socket = io.connect( 'http://pcam.podomorouniversity.ac.id:3000/' );
+            //
+            // socket_messages();
 
 
 
@@ -131,6 +133,8 @@
 
         function socket_messages(){
 
+            return false;
+
             socket.on( 'mobile_notif', function( data ) {
 
                 var UserToken = localStorage.getItem('UserToken');
@@ -179,6 +183,11 @@
     </script>
 
     <style>
+
+        body {
+            font-family: "MavenPro";
+        }
+
         .modal {
             text-align: center;
             padding: 0!important;
